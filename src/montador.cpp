@@ -1,34 +1,5 @@
 #include "montador.h"
 
-std::vector<Infos> conversionTable = {
-    {"0",   "HALT",     "0"},
-    {"1",   "LOAD",     "2"},
-    {"2",   "STORE",    "2"},
-    {"3",   "READ",     "1"},
-    {"4",   "WRITE",    "1"},
-    {"5",   "COPY",     "2"},
-    {"6",   "PUSH",     "1"},
-    {"7",   "POP",      "1"},
-    {"8",   "ADD",      "2"},
-    {"9",   "SUB",      "2"},
-    {"10",  "MUL",      "2"},
-    {"11",  "DIV",      "2"},
-    {"12",  "MOD",      "2"},
-    {"13",  "AND",      "2"},
-    {"14",  "OR",       "2"},
-    {"15",  "NOT",      "1"},
-    {"16",  "JUMP",     "1"},
-    {"17",  "JZ",       "1"},
-    {"18",  "JN",       "1"},
-    {"19",  "CALL",     "1"},
-    {"20",  "RET",      "0"},
-};
-
-
-Assembler::Assembler(std::string fileName){
-    this->fileName = fileName;
-}
-
 
 void split(const std::string &s, char delim, std::vector<std::string> &elems) {
     std::stringstream ss(s);
@@ -44,33 +15,68 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-void Assembler::run(){
+
+std::string left_trim(const std::string &str) {
+    return std::regex_replace(str, std::regex("^\\s+"), std::string(""));
+}
+
+std::string right_trim(const std::string &str) {
+    return std::regex_replace(str, std::regex("\\s+$"), std::string(""));
+}
+
+std::string trim(const std::string &str) {
+    return right_trim(left_trim(str));
+}
+
+
+std::vector<Infos> conversionTable = {
+    {0,   "HALT",     NOARG,      NOARG,  1},
+    {1,   "LOAD",     REG,        MEM,    3},
+    {2,   "STORE",    REG,        MEM,    3},
+    {3,   "READ",     REG,        NOARG,  2},
+    {4,   "WRITE",    REG,        NOARG,  2},
+    {5,   "COPY",     REG,        NOARG,  3},
+    {6,   "PUSH",     REG,        NOARG,  2},
+    {7,   "POP",      REG,        NOARG,  2},
+    {8,   "ADD",      REG,        REG,    3},
+    {9,   "SUB",      REG,        REG,    3},
+    {10,  "MUL",      REG,        REG,    3},
+    {11,  "DIV",      REG,        REG,    3},
+    {12,  "MOD",      REG,        REG,    3},
+    {13,  "AND",      REG,        REG,    3},
+    {14,  "OR",       REG,        REG,    3},
+    {15,  "NOT",      REG,        NOARG,  2},
+    {16,  "JUMP",     MEM,        NOARG,  2},
+    {17,  "JZ",       MEM,        NOARG,  2},
+    {18,  "JN",       MEM,        NOARG,  2},
+    {19,  "CALL",     MEM,        NOARG,  2},
+    {20,  "RET",      NOARG,      NOARG,  1},
+};
+
+
+Assembler::Assembler(std::string fileName){
+    this->fileName = fileName;
+}
+
+
+void Assembler::getInstructionsFromFile() {
     std::string line;
     std::fstream myFile;
 
     myFile.open(this->fileName);
 
-    // while (myFile >> word) {
-    //     // displaying content
-    //     std::cout << word << std::endl;
-    // }
-
     if (myFile.is_open()) {
-        while ( getline (myFile,line) ){
-            bool nextLine = false;
-
-            // std::cout << line << std::endl;
-
+        while (getline (myFile,line) ) {
             std::stringstream ss(line);
             std::string item;
             while (getline(ss, item, ' ')) {
-                if(item[0] == ';' || item[0] == ' ') break;
-                std::cout << item << std::endl;
+                
+                if (item[0] == ';' || (!isalpha(item[0]) && !std::isdigit(item[0]))) break;
+                this->fileInstructions.push_back(item);
+
+                // std::cout << item << std::endl;
+
             }
-
-
-            // if(nextLine) break;
-            
         }
         myFile.close();
     }
@@ -81,13 +87,103 @@ void Assembler::run(){
 
 
 
-std::vector<Operation> Assembler::get_operations() {
-    return this->operations;
-}
-void Assembler::add_operation(Operation operation) {
-    this->operations.push_back(operation);
+Infos Assembler::findInstructionBySymbol(std::string symbol) {
+    for (auto info : conversionTable) {
+        if (info.symbol == symbol) return info;
+    }
+
+    return Infos(-1, "NOT_FOUND", -1, -1, 0);
 }
 
-void Assembler::convert(std::vector<std::string>) {
-    std::cout << "=~~/";
+
+int Assembler::getReg(std::string reg){
+    if (reg == "R0") return 0;
+    else if (reg == "R1") return 1;
+    else if (reg == "R2") return 2;
+    else if (reg == "R3") return 3;
+    else return -1;
 }
+
+
+
+void Assembler::run(){
+    this->getInstructionsFromFile();
+
+    this->compiledInstructions = "";
+
+    for (int i=0; i<this->fileInstructions.size(); i++){
+
+        std::string str = this->fileInstructions[i];
+
+        if (str == "END") break;
+        
+        if (str == "WORD") {
+            i++;
+            this->compiledInstructions += this->fileInstructions[i] + " ";
+            continue;
+        }
+
+        Infos info = this->findInstructionBySymbol(str);
+
+        if (info.code != -1) {
+            this->compiledInstructions += std::to_string(info.code) + " ";
+
+            if (info.arg1 != NOARG) {
+                i++;
+                if (info.arg1 == MEM) {
+                    
+                    int pos = 0;
+
+                    for (int j=0; j<this->fileInstructions.size(); j++) {
+                        std::string mem = this->fileInstructions[i] + ":";
+                        std::string mempos = this->fileInstructions[j];
+                        if (mem == mempos) {
+                            pos = j - i - 1;
+                        }
+                    }
+
+                    this->compiledInstructions += std::to_string(pos) + " ";
+
+                } else if (info.arg1 == REG) {
+                    
+                    int reg = this->getReg(this->fileInstructions[i]);
+                    
+                    this->compiledInstructions += std::to_string(reg) + " ";
+
+                }
+            }
+            if (info.arg2 != NOARG) {
+                i++;
+                if(info.arg2 == MEM) {
+                    
+                    int pos = 0;
+
+                    for (int j=0; j<this->fileInstructions.size(); j++) {
+                        std::string mem = this->fileInstructions[i] + ":";
+                        std::string mempos = this->fileInstructions[j];
+                        if (mem == mempos) {
+                            pos = j - i - 1;
+                        }
+                    }
+
+                    this->compiledInstructions += std::to_string(pos) + " ";
+
+
+                } else if (info.arg2 == REG) {
+                    
+                    int reg = this->getReg(this->fileInstructions[i]);
+                    
+                    this->compiledInstructions += std::to_string(reg) + " ";
+
+                }
+            }
+        }
+
+   }
+
+   std::cout << trim(this->compiledInstructions) << std::endl;
+}
+
+
+
+

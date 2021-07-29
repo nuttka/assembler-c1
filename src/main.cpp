@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "montador.h"
 #include <memory>
@@ -15,6 +16,7 @@ int main(int argc, char *argv[]) {
 
     const std::string fileName = std::string(argv[1]);
 
+    // std::unique_ptr<Assembler> assembler(new Assembler(fileName)); 
     Assembler *assembler = new Assembler(fileName);
     assembler->run();
 
