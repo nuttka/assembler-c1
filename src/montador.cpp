@@ -15,7 +15,6 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-
 std::string left_trim(const std::string &str) {
     return std::regex_replace(str, std::regex("^\\s+"), std::string(""));
 }
@@ -30,27 +29,27 @@ std::string trim(const std::string &str) {
 
 
 std::vector<Infos> conversionTable = {
-    {0,   "HALT",     NOARG,      NOARG,  1},
-    {1,   "LOAD",     REG,        MEM,    3},
-    {2,   "STORE",    REG,        MEM,    3},
-    {3,   "READ",     REG,        NOARG,  2},
-    {4,   "WRITE",    REG,        NOARG,  2},
-    {5,   "COPY",     REG,        NOARG,  3},
-    {6,   "PUSH",     REG,        NOARG,  2},
-    {7,   "POP",      REG,        NOARG,  2},
-    {8,   "ADD",      REG,        REG,    3},
-    {9,   "SUB",      REG,        REG,    3},
-    {10,  "MUL",      REG,        REG,    3},
-    {11,  "DIV",      REG,        REG,    3},
-    {12,  "MOD",      REG,        REG,    3},
-    {13,  "AND",      REG,        REG,    3},
-    {14,  "OR",       REG,        REG,    3},
-    {15,  "NOT",      REG,        NOARG,  2},
-    {16,  "JUMP",     MEM,        NOARG,  2},
-    {17,  "JZ",       MEM,        NOARG,  2},
-    {18,  "JN",       MEM,        NOARG,  2},
-    {19,  "CALL",     MEM,        NOARG,  2},
-    {20,  "RET",      NOARG,      NOARG,  1},
+    {0,   "HALT",     NOARG,      NOARG},
+    {1,   "LOAD",     REG,        MEM},
+    {2,   "STORE",    REG,        MEM},
+    {3,   "READ",     REG,        NOARG},
+    {4,   "WRITE",    REG,        NOARG},
+    {5,   "COPY",     REG,        NOARG},
+    {6,   "PUSH",     REG,        NOARG},
+    {7,   "POP",      REG,        NOARG},
+    {8,   "ADD",      REG,        REG},
+    {9,   "SUB",      REG,        REG},
+    {10,  "MUL",      REG,        REG},
+    {11,  "DIV",      REG,        REG},
+    {12,  "MOD",      REG,        REG},
+    {13,  "AND",      REG,        REG},
+    {14,  "OR",       REG,        REG},
+    {15,  "NOT",      REG,        NOARG},
+    {16,  "JUMP",     MEM,        NOARG},
+    {17,  "JZ",       MEM,        NOARG},
+    {18,  "JN",       MEM,        NOARG},
+    {19,  "CALL",     MEM,        NOARG},
+    {20,  "RET",      NOARG,      NOARG}
 };
 
 
@@ -74,8 +73,6 @@ void Assembler::getInstructionsFromFile() {
                 if (item[0] == ';' || (!isalpha(item[0]) && !std::isdigit(item[0]))) break;
                 this->fileInstructions.push_back(item);
 
-                // std::cout << item << std::endl;
-
             }
         }
         myFile.close();
@@ -85,14 +82,12 @@ void Assembler::getInstructionsFromFile() {
 }
 
 
-
-
 Infos Assembler::findInstructionBySymbol(std::string symbol) {
     for (auto info : conversionTable) {
         if (info.symbol == symbol) return info;
     }
 
-    return Infos(-1, "NOT_FOUND", -1, -1, 0);
+    return Infos(-1, "NOT_FOUND", -1, -1);
 }
 
 
@@ -111,7 +106,7 @@ void Assembler::run(){
 
     this->compiledInstructions = "";
 
-    for (int i=0; i<this->fileInstructions.size(); i++){
+    for (size_t i=0; i<this->fileInstructions.size(); i++){
 
         std::string str = this->fileInstructions[i];
 
@@ -134,7 +129,7 @@ void Assembler::run(){
                     
                     int pos = 0;
 
-                    for (int j=0; j<this->fileInstructions.size(); j++) {
+                    for (size_t j=0; j<this->fileInstructions.size(); j++) {
                         std::string mem = this->fileInstructions[i] + ":";
                         std::string mempos = this->fileInstructions[j];
                         if (mem == mempos) {
@@ -158,7 +153,7 @@ void Assembler::run(){
                     
                     int pos = 0;
 
-                    for (int j=0; j<this->fileInstructions.size(); j++) {
+                    for (size_t j=0; j<this->fileInstructions.size(); j++) {
                         std::string mem = this->fileInstructions[i] + ":";
                         std::string mempos = this->fileInstructions[j];
                         if (mem == mempos) {
@@ -183,7 +178,5 @@ void Assembler::run(){
 
    std::cout << trim(this->compiledInstructions) << std::endl;
 }
-
-
 
 

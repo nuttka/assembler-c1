@@ -24,23 +24,14 @@ struct Infos {
     std::string symbol;
     int arg1;
     int arg2;
-    int size;
-    Infos(int code, std::string symbol, int arg1, int arg2, int size){
+    Infos(int code, std::string symbol, int arg1, int arg2){
         this->code = code;
         this->symbol = symbol;
         this->arg1 = arg1;
         this->arg2 = arg2;
-        this->size = size;
     }
 };
 
-
-// struct Operation {
-//     std::string label;
-//     std::string oper;
-//     std::string operator1;
-//     std::string operator2;
-// };
 
 
 
@@ -54,13 +45,9 @@ class Assembler {
         Assembler(std::string);
         ~Assembler();
 
-        // void fileInstructionsTreatment();
         Infos findInstructionBySymbol(std::string);
-        // std::vector<Operation> get_operations();
         void getInstructionsFromFile();
         int getReg(std::string);
-        // void add_operation(Operation);
-        // void convert(std::vector<std::string>);
         void run();
 };
 
