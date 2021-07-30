@@ -67,14 +67,42 @@ void Assembler::getInstructionsFromFile() {
     if (myFile.is_open()) {
         while (getline (myFile,line) ) {
             std::stringstream ss(line);
-            std::string item;
-            while (getline(ss, item, ' ')) {
-                
-                if (item[0] == ';' || (!isalpha(item[0]) && !std::isdigit(item[0]))) break;
-                this->fileInstructions.push_back(item);
+            std::string item = "";
 
+            for (size_t i=0; i<line.size(); i++) {
+                if (line[i] == ';') {
+                    if (item.size() != 0) {
+                        this->fileInstructions.push_back(item);
+                        item = "";
+                    }
+                    break;
+                }
+
+                if ((!isalpha(line[i]) && !std::isdigit(line[i])) || line[i]==' ') {
+                    if (item.size() == 0) continue;
+                    else {
+                        this->fileInstructions.push_back(item);
+                        item = "";
+                    }
+                } else {
+                    item += line[i];
+                }
             }
+
+
+            // while (getline(ss, item, ' ')) {
+                
+            //     // std::cout << "PALAVRA: " << item << std::endl;
+            //     if (item[0] == ';' || (!isalpha(item[0]) && !std::isdigit(item[0]))) break;
+            //     this->fileInstructions.push_back(item);
+
+            // }
         }
+
+        for (size_t i=0; i<this->fileInstructions.size(); i++) {
+            std::cout << "PALAVRA: " << this->fileInstructions[i] << std::endl;
+        }
+
         myFile.close();
     }
 
